@@ -1,0 +1,55 @@
+name: Build ARKON QCOW2
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Image variant (arkon or arkon-nvidia)'
+        required: false
+        default: 'arkon'
+
+jobs:
+  build-qcow2:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install podman and dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y podman qemu-utils
+
+      - name: Build ARKON container image
+        run: |
+          VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
+          bash build/scripts/build-image.sh "${VARIANT}"
+
+      - name: Build QCOW2 disk image
+        run: |
+          VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
+          mkdir -p artifacts/qcow2 artifacts/checksums artifacts/logs
+          bash build/scripts/build-qcow2.sh "${VARIANT}"
+
+      - name: Verify artifacts
+        run: bash build/scripts/verify.sh
+
+      - name: Upload QCOW2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arkon-qcow2-${{ github.sha }}
+          path: |
+            artifacts/qcow2/*.qcow2
+            artifacts/checksums/*.sha256
+          retention-days: 14
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-qcow2-${{ github.sha }}
+          path: artifacts/logs/
+          retention-days: 7
