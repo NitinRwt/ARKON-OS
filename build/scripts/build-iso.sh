@@ -56,7 +56,7 @@ podman run \
     -v "${CONFIG_FILE}":/config.toml:ro \
     "${IMAGE_BUILDER}" \
     --type anaconda-iso \
-    --local \
+    --rootfs xfs \
     --config /config.toml \
     "${IMAGE_TAG}" \
     2>&1 | tee "${LOG_FILE}"
