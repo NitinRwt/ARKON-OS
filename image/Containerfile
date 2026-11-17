@@ -28,8 +28,8 @@ COPY image/repos/rpmfusion-nonfree.repo /etc/yum.repos.d/rpmfusion-nonfree.repo
 
 # Install RPM Fusion GPG keys before trusting the repositories.
 RUN rpm --import \
-    https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-${FEDORA_RELEASE} \
-    https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-${FEDORA_RELEASE}
+    https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-2020 \
+    https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020
 
 # Copy and install base package list.
 COPY image/packages/base.txt /tmp/packages-base.txt
