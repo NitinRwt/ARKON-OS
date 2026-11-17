@@ -57,9 +57,8 @@ RUN dnf install -y --skip-unavailable \
     && dnf clean all \
     && rm -f /tmp/packages-desktop.txt
 
-# Enable the display manager so the graphical target starts on first boot.
-RUN systemctl enable sddm.service
-
+# @kde-desktop-environment already enables plasmalogin.service (the F45 display
+# manager service) via its post-install scriptlet. No explicit enable needed.
 # Disable the automatic console-login that fedora-bootc ships by default —
 # ARKON requires authentication.
 RUN systemctl disable getty@tty1.service || true
