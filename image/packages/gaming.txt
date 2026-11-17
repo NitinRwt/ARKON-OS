@@ -14,7 +14,6 @@ goverlay
 
 # Controller and joystick support
 gamemode
-libgamemode
 usbutils
 # udev rules for common controllers come via steam-devices
 steam-devices

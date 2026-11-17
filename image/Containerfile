@@ -69,7 +69,7 @@ RUN systemctl disable getty@tty1.service || true
 FROM desktop AS gaming
 
 COPY image/packages/gaming.txt /tmp/packages-gaming.txt
-RUN dnf install -y \
+RUN dnf install -y --skip-unavailable \
     $(grep -v '^#' /tmp/packages-gaming.txt | grep -v '^$') \
     && dnf clean all \
     && rm -f /tmp/packages-gaming.txt
