@@ -1,24 +1,10 @@
-# image-builder configuration for QCOW2 disk image generation.
+# bootc-image-builder config for qcow2 type.
 # Used by: build/scripts/build-qcow2.sh
 #
-# This creates a pre-installed QCOW2 suitable for booting in QEMU.
-# The default user is created for VM validation only — not for production images.
-#
-# Format: osbuild image-builder blueprint (TOML).
-# Reference: https://osbuild.org/docs/on-premises/
+# Produces a QCOW2 disk image that boots directly in QEMU.
+# Default VM user is arkon/arkon (for testing only — change before production use).
 
-[customizations]
-
-[customizations.kernel]
-append = ""
-
-# Default user for VM validation testing.
-# Change or remove this for production image builds.
 [[customizations.user]]
-name     = "arkon"
+name = "arkon"
 password = "arkon"
-groups   = ["wheel"]
-
-[customizations.services]
-enabled  = ["sddm.service", "NetworkManager.service"]
-disabled = []
+groups = ["wheel"]

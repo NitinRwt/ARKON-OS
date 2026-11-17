@@ -1,26 +1,10 @@
-# image-builder configuration for the generic-iso installer ISO.
+# bootc-image-builder config for anaconda-iso type.
 # Used by: build/scripts/build-iso.sh
 #
-# The generic-iso type produces an Anaconda-based installer that embeds the
-# ARKON bootc image. The user selects a disk and Anaconda installs the image.
-#
-# Phase 2 status: the ARKON custom installer UI (arkon-installd) is not yet
-# present. The ISO will work with the standard Anaconda interactive installer.
-#
-# Format: osbuild image-builder blueprint (TOML).
+# Creates an Anaconda installer ISO that embeds the ARKON bootc image.
+# The user selects a target disk; Anaconda installs the image via bootc.
 
-[customizations]
-
-# Kickstart file for unattended install during automated testing.
-# Remove [customizations.installer] to get the interactive Anaconda UI.
-[customizations.installer]
-# Point to a kickstart file for automated installs.
-# Leave unset for interactive Anaconda.
-# kickstart = ""
-
-# Anaconda modules to enable.
-[customizations.installer.modules]
-enabled  = ["org.fedoraproject.Anaconda.Modules.Network",
-            "org.fedoraproject.Anaconda.Modules.Storage",
-            "org.fedoraproject.Anaconda.Modules.Users"]
-disabled = []
+[[customizations.user]]
+name = "arkon"
+password = "arkon"
+groups = ["wheel"]

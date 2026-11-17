@@ -31,7 +31,7 @@ LOG_DIR="${REPO_ROOT}/artifacts/logs"
 LOG_FILE="${LOG_DIR}/build-iso-${VARIANT}-${TIMESTAMP}.log"
 CONFIG_FILE="${REPO_ROOT}/build/config/image-builder-iso.toml"
 
-IMAGE_BUILDER="quay.io/osbuild/image-builder"
+IMAGE_BUILDER="quay.io/centos-bootc/bootc-image-builder:latest"
 
 mkdir -p "${OUTPUT_DIR}" "${LOG_DIR}"
 
@@ -42,7 +42,7 @@ if ! podman image exists "${IMAGE_TAG}"; then
 fi
 
 echo "==> Generating installer ISO from ${IMAGE_TAG}"
-echo "    Type: generic-iso"
+echo "    Type: anaconda-iso"
 echo "    Output: ${OUTPUT_DIR}"
 echo "    Log:    ${LOG_FILE}"
 
@@ -55,14 +55,13 @@ podman run \
     -v "${OUTPUT_DIR}":/output \
     -v "${CONFIG_FILE}":/config.toml:ro \
     "${IMAGE_BUILDER}" \
-    build \
-    --type generic-iso \
-    --output /output \
+    --type anaconda-iso \
+    --local \
     --config /config.toml \
     "${IMAGE_TAG}" \
     2>&1 | tee "${LOG_FILE}"
 
-ISO_FILE="$(find "${OUTPUT_DIR}" -name "*.iso" -newer "${LOG_FILE}" | head -1)"
+ISO_FILE="$(find "${OUTPUT_DIR}" -name "*.iso" | head -1)"
 if [[ -z "${ISO_FILE}" ]]; then
     echo "WARNING: could not locate ISO output; check ${LOG_FILE}" >&2
     exit 1

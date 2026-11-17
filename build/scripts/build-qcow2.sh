@@ -31,8 +31,7 @@ LOG_DIR="${REPO_ROOT}/artifacts/logs"
 LOG_FILE="${LOG_DIR}/build-qcow2-${VARIANT}-${TIMESTAMP}.log"
 CONFIG_FILE="${REPO_ROOT}/build/config/image-builder-qcow2.toml"
 
-# image-builder container — update if the container reference has changed.
-IMAGE_BUILDER="quay.io/osbuild/image-builder"
+IMAGE_BUILDER="quay.io/centos-bootc/bootc-image-builder:latest"
 
 mkdir -p "${OUTPUT_DIR}" "${LOG_DIR}"
 
@@ -56,15 +55,14 @@ podman run \
     -v "${OUTPUT_DIR}":/output \
     -v "${CONFIG_FILE}":/config.toml:ro \
     "${IMAGE_BUILDER}" \
-    build \
     --type qcow2 \
-    --output /output \
+    --local \
     --config /config.toml \
     "${IMAGE_TAG}" \
     2>&1 | tee "${LOG_FILE}"
 
 # Locate the generated file.
-QCOW2_FILE="$(find "${OUTPUT_DIR}" -name "*.qcow2" -newer "${LOG_FILE}" | head -1)"
+QCOW2_FILE="$(find "${OUTPUT_DIR}" -name "*.qcow2" | head -1)"
 if [[ -z "${QCOW2_FILE}" ]]; then
     echo "WARNING: could not locate QCOW2 output; check ${LOG_FILE}" >&2
     exit 1
