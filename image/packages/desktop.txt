@@ -8,7 +8,7 @@
 # Wayland session support
 plasma-wayland-protocols
 kwayland
-xwayland
+xorg-x11-server-Xwayland
 
 # Display manager
 sddm
@@ -30,7 +30,7 @@ plasma-nm
 
 # Printing
 cups
-print-manager
+plasma-print-manager
 
 # File manager
 dolphin

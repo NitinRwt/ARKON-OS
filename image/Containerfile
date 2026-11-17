@@ -52,7 +52,7 @@ COPY image/rootfs/usr/lib/bootc/kargs.d/arkon-base.conf \
 FROM base AS desktop
 
 COPY image/packages/desktop.txt /tmp/packages-desktop.txt
-RUN dnf install -y \
+RUN dnf install -y --skip-unavailable \
     $(grep -v '^#' /tmp/packages-desktop.txt | grep -v '^$') \
     && dnf clean all \
     && rm -f /tmp/packages-desktop.txt
