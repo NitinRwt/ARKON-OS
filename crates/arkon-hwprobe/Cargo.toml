@@ -1,0 +1,13 @@
+[package]
+name    = "arkon-hwprobe"
+version = "0.1.0"
+edition = "2021"
+description = "Hardware probe CLI for the ARKON OS installer"
+
+[[bin]]
+name = "arkon-hwprobe"
+path = "src/main.rs"
+
+[dependencies]
+arkon-hw   = { path = "../arkon-hw" }
+serde_json = { workspace = true }

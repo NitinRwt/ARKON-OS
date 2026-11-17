@@ -1,0 +1,67 @@
+.encoding = "UTF-8"
+config.version = "8"
+virtualHW.version = "21"
+
+# ARKON OS — VMware Workstation / Fusion VM configuration.
+# Usage:
+#   1. Build ARKON: run build/scripts/build-qcow2.sh on a Linux host.
+#   2. Convert QCOW2 to VMDK:
+#        qemu-img convert -O vmdk artifacts/qcow2/disk.qcow2 vm/vmware/arkon.vmdk
+#   3. Open this .vmx in VMware Workstation (File → Open).
+#   4. If prompted to upgrade hardware, click "Keep existing format".
+#
+# IMPORTANT: This VM does NOT use any physical disk.
+# The VMDK path below must point to your converted disk image.
+
+displayName = "ARKON OS"
+guestOS = "fedora-64"
+annotation = "ARKON OS — Fedora bootc gaming and AI workstation"
+
+# CPU / Memory
+numvcpus = "4"
+cpuid.coresPerSocket = "4"
+memsize = "8192"
+
+# UEFI firmware (Secure Boot disabled for VM testing)
+firmware = "efi"
+uefi.secureBoot.enabled = "FALSE"
+
+# Virtual disk (VMDK converted from QCOW2 build artifact — NOT a physical disk)
+scsi0.present = "TRUE"
+scsi0.virtualDev = "pvscsi"
+scsi0:0.present = "TRUE"
+scsi0:0.fileName = "arkon.vmdk"
+scsi0:0.deviceType = "scsi-hardDisk"
+
+# Network — NAT
+ethernet0.present = "TRUE"
+ethernet0.connectionType = "nat"
+ethernet0.virtualDev = "vmxnet3"
+ethernet0.wakeOnPcktRcv = "FALSE"
+ethernet0.addressType = "generated"
+
+# Display
+svga.present = "TRUE"
+svga.vramSize = "268435456"
+mks.enable3d = "FALSE"
+
+# USB
+usb.present = "TRUE"
+usb3.present = "TRUE"
+
+# Sound (disabled — not needed for validation)
+sound.present = "FALSE"
+
+# Misc
+pciBridge0.present = "TRUE"
+pciBridge4.present = "TRUE"
+pciBridge4.virtualDev = "pcieRootPort"
+pciBridge5.present = "TRUE"
+pciBridge5.virtualDev = "pcieRootPort"
+vmci0.present = "TRUE"
+hpet0.present = "TRUE"
+rtc.diffFromUTC = "0"
+powerType.powerOff = "soft"
+powerType.reset = "soft"
+powerType.suspend = "soft"
+tools.syncTime = "TRUE"

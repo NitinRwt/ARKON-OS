@@ -1,0 +1,10 @@
+[package]
+name    = "arkon-storage"
+version = "0.1.0"
+edition = "2021"
+description = "Storage scanner, partition planner and safety validator for the ARKON OS installer"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }

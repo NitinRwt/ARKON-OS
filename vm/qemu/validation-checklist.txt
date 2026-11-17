@@ -1,0 +1,56 @@
+ARKON OS — VM Validation Checklist
+=====================================
+Run this checklist after each successful QCOW2 build.
+Record: date, build timestamp, variant, QEMU version, host OS.
+
+Date:          ___________
+Build:         ___________
+Variant:       arkon / arkon-nvidia (circle one)
+QEMU version:  ___________
+Host OS:       ___________
+
+Boot validation
+---------------
+[ ] 1. UEFI firmware initialises (OVMF logo or text visible)
+[ ] 2. GRUB2 boot menu appears (or boot proceeds automatically)
+[ ] 3. Kernel loads (ARKON kernel version: ___________________)
+[ ] 4. systemd reaches graphical.target without journal errors
+
+Desktop validation
+------------------
+[ ] 5. SDDM login screen appears
+[ ] 6. Login with default VM credentials succeeds
+[ ] 7. KDE Plasma 6.x desktop loads on Wayland
+[ ] 8. Plasma version: ___________
+[ ] 9. Taskbar, application launcher and notifications work
+
+System validation
+-----------------
+[ ] 10. Network connectivity: ping 8.8.8.8 succeeds
+[ ] 11. DNS resolution works (ping google.com resolves)
+[ ] 12. File manager (Dolphin) opens
+[ ] 13. Terminal opens; `bootc status` shows the booted image
+[ ] 14. `bootc status` variant matches expected (arkon or arkon-nvidia)
+[ ] 15. systemd services — no failed units: `systemctl --failed`
+[ ] 16. Journal clean: `journalctl -p err -b` (note any critical errors)
+[ ] 17. Filesystem mounts: `df -h` shows /usr as overlayfs or composefs
+[ ] 18. Shutdown completes cleanly (no hang, no fsck errors)
+
+NVIDIA-specific (arkon-nvidia variant only)
+-------------------------------------------
+[ ] 19. NVIDIA kernel module loaded: `lsmod | grep nvidia`
+[ ] 20. GPU visible: `nvidia-smi`
+[ ] 21. Wayland compositor using NVIDIA: `echo $WAYLAND_DISPLAY` in Plasma
+NOTE: GPU acceleration in a generic VM without GPU passthrough is NOT expected.
+      NVIDIA validation on this virtual machine is UNVERIFIED unless
+      SR-IOV or GPU passthrough is explicitly configured.
+
+Known limitations in VM (do not mark as failures)
+--------------------------------------------------
+- NVIDIA GPU acceleration: not expected without GPU passthrough.
+- CUDA: not available in a generic VM.
+- Steam DRM: may not activate without internet and Steam account login.
+- greenboot health checks: depend on the full system; note any failures.
+
+Blockers / notes
+----------------

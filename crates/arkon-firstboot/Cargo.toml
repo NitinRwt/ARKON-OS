@@ -1,0 +1,11 @@
+[package]
+name = "arkon-firstboot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+arkon-hw   = { path = "../arkon-hw" }
+arkon-boot = { path = "../arkon-boot" }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }

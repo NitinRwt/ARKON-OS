@@ -1,0 +1,58 @@
+# ARKON base stage packages — installed on top of fedora-bootc:45
+# One package per line; comments and blank lines are ignored by build scripts.
+# Edit this file to add/remove base packages; never scatter dnf calls in scripts.
+
+# Update tooling
+bootc
+bootupd
+
+# Health-check and rollback
+greenboot
+greenboot-default-health-checks
+
+# System management
+systemd
+systemd-resolved
+systemd-oomd-defaults
+polkit
+dbus-daemon
+
+# Containers
+podman
+netavark
+aardvark-dns
+# pasta is the slirp replacement (Podman 6.x removed slirp4netns)
+passt
+
+# Security
+policycoreutils
+policycoreutils-python-utils
+selinux-policy-targeted
+
+# Network
+NetworkManager
+NetworkManager-wifi
+wpa_supplicant
+iwd
+
+# Bluetooth
+bluez
+bluez-libs
+
+# Firmware
+linux-firmware
+
+# Basic utilities (minimal — no toolchain)
+bash
+coreutils
+util-linux
+gzip
+bzip2
+xz
+zstd
+less
+man-db
+sudo
+
+# Fonts (base set; desktop stage adds more)
+google-noto-fonts-common

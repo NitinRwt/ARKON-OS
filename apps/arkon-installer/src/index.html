@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARKON Installer</title>
+<style>
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  --bg:         #0f1117;
+  --bg-card:    #181c27;
+  --bg-input:   #1e2333;
+  --bg-hover:   #242a3c;
+  --border:     #2c3250;
+  --border-sel: #4f6ef7;
+  --text:       #e8ecf4;
+  --text-muted: #8b92aa;
+  --accent:     #4f6ef7;
+  --accent-h:   #3d5ce0;
+  --accent-dim: rgba(79,110,247,.15);
+  --warn:       #f7a74f;
+  --err:        #f75f5f;
+  --ok:         #4ff79a;
+  --radius:     10px;
+  --radius-sm:  6px;
+  --shadow:     0 4px 24px rgba(0,0,0,.45);
+  --transition: 220ms cubic-bezier(.4,0,.2,1);
+  --font:       system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:       "JetBrains Mono","Fira Code","Cascadia Code",monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:        #f4f6fb;
+    --bg-card:   #ffffff;
+    --bg-input:  #f0f2f8;
+    --bg-hover:  #e8ecf6;
+    --border:    #d4d9ea;
+    --border-sel:#4f6ef7;
+    --text:      #1a1e2e;
+    --text-muted:#6b7196;
+    --accent:    #3d5ce0;
+    --accent-h:  #2d4bc8;
+    --accent-dim:rgba(79,110,247,.12);
+    --shadow:    0 4px 24px rgba(0,0,0,.12);
+  }
+}
+:root[data-theme="light"] {
+  --bg:#f4f6fb; --bg-card:#ffffff; --bg-input:#f0f2f8; --bg-hover:#e8ecf6;
+  --border:#d4d9ea; --border-sel:#4f6ef7; --text:#1a1e2e; --text-muted:#6b7196;
+  --accent:#3d5ce0; --accent-h:#2d4bc8; --accent-dim:rgba(79,110,247,.12);
+  --shadow:0 4px 24px rgba(0,0,0,.12);
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+ul{list-style:none}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+#app{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  grid-template-rows:auto 1fr auto;
+  min-height:100vh;
+}
+#header{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:12px;
+  padding:0 24px;height:52px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg-card);
+}
+#header .logo{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+#header .logo span{color:var(--accent)}
+#header .version{font-size:12px;color:var(--text-muted)}
+#header .spacer{flex:1}
+#theme-toggle{
+  width:32px;height:32px;border:none;background:transparent;
+  color:var(--text-muted);font-size:16px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--transition),color var(--transition);
+}
+#theme-toggle:hover{background:var(--bg-hover);color:var(--text)}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+#sidebar{
+  grid-row:2/3;
+  padding:20px 0;
+  border-right:1px solid var(--border);
+  background:var(--bg-card);
+  overflow-y:auto;
+}
+.step-item{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 20px;font-size:13px;color:var(--text-muted);
+  transition:background var(--transition),color var(--transition);
+  position:relative;
+}
+.step-item.active{color:var(--text);background:var(--accent-dim)}
+.step-item.active::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--accent);border-radius:0 3px 3px 0;
+}
+.step-item.done{color:var(--ok)}
+.step-dot{
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+  background:var(--bg-input);color:var(--text-muted);
+  transition:background var(--transition),color var(--transition);
+}
+.step-item.active .step-dot{background:var(--accent);color:#fff}
+.step-item.done .step-dot{background:var(--ok);color:#0f1117}
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+#main{
+  grid-row:2/3;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.screen{
+  flex:1;padding:40px 48px;max-width:720px;width:100%;
+  animation:fadeIn 180ms ease both;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.screen-title{font-size:26px;font-weight:700;letter-spacing:-.025em;margin-bottom:6px}
+.screen-subtitle{font-size:14px;color:var(--text-muted);margin-bottom:32px}
+.section-label{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card+.card{margin-top:12px}
+.selectable{cursor:pointer;transition:border-color var(--transition),background var(--transition)}
+.selectable:hover{border-color:var(--border-sel);background:var(--bg-hover)}
+.selectable.selected{border-color:var(--border-sel);background:var(--accent-dim)}
+
+/* ── Inputs ─────────────────────────────────────────────────────────────── */
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:10px 14px;
+  background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--text);font-size:14px;outline:none;
+  transition:border-color var(--transition);
+}
+.field input:focus,.field select:focus{border-color:var(--border-sel)}
+.field input::placeholder{color:var(--text-muted)}
+.field select option{background:var(--bg-card)}
+
+/* ── Rows ───────────────────────────────────────────────────────────────── */
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm)}
+.row:hover{background:var(--bg-hover)}
+
+/* ── Badges / chips ─────────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
+.badge.ok{background:rgba(79,247,154,.15);color:var(--ok)}
+.badge.warn{background:rgba(247,167,79,.15);color:var(--warn)}
+.badge.err{background:rgba(247,95,95,.15);color:var(--err)}
+.badge.info{background:var(--accent-dim);color:var(--accent)}
+
+/* ── Progress bar ───────────────────────────────────────────────────────── */
+.progress-track{height:6px;background:var(--bg-input);border-radius:3px;overflow:hidden;margin:16px 0}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s ease}
+
+/* ── Footer / nav ───────────────────────────────────────────────────────── */
+#footer{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:12px;justify-content:flex-end;
+  padding:14px 48px;
+  border-top:1px solid var(--border);
+  background:var(--bg-card);
+}
+.btn{
+  padding:9px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+  border:none;transition:background var(--transition),opacity var(--transition);
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-h)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-secondary{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover:not(:disabled){background:var(--bg-hover)}
+.btn-danger{background:var(--err);color:#fff}
+.btn-danger:hover:not(:disabled){filter:brightness(1.1)}
+.btn-danger:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Check marks ────────────────────────────────────────────────────────── */
+.check-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.check-row:last-child{border-bottom:none}
+.check-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.check-icon.pass{background:rgba(79,247,154,.18);color:var(--ok)}
+.check-icon.fail{background:rgba(247,95,95,.18);color:var(--err)}
+.check-icon.warn{background:rgba(247,167,79,.18);color:var(--warn)}
+.check-label{font-size:14px;font-weight:600}
+.check-detail{font-size:13px;color:var(--text-muted);margin-top:2px}
+
+/* ── Monospace box ──────────────────────────────────────────────────────── */
+.mono-box{
+  background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;font-family:var(--mono);font-size:13px;
+  color:var(--text);max-height:200px;overflow-y:auto;line-height:1.5;
+}
+
+/* ── Partition table ────────────────────────────────────────────────────── */
+.part-table{width:100%;border-collapse:collapse;font-size:13px}
+.part-table th{text-align:left;padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.part-table td{padding:9px 10px;border-bottom:1px solid var(--border)}
+.part-table tr:last-child td{border-bottom:none}
+.part-table .new{color:var(--accent)}
+.part-table .existing{color:var(--text-muted)}
+
+/* ── Confirmation phrase ─────────────────────────────────────────────────── */
+.phrase-display{
+  font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.04em;
+  padding:14px 20px;background:var(--bg-input);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--warn);text-align:center;margin:16px 0;
+}
+.phrase-input.matched{border-color:var(--ok)!important}
+.phrase-input.unmatched{border-color:var(--err)!important}
+
+/* ── Error screen ───────────────────────────────────────────────────────── */
+.error-box{background:rgba(247,95,95,.08);border:1px solid rgba(247,95,95,.3);border-radius:var(--radius);padding:20px}
+.error-title{font-size:16px;font-weight:700;color:var(--err);margin-bottom:6px}
+.error-detail{font-size:14px;color:var(--text-muted)}
+
+/* ── Complete screen ─────────────────────────────────────────────────────── */
+.complete-icon{font-size:56px;margin-bottom:16px}
+.mok-steps{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.mok-steps li{padding:5px 0;font-size:13px;color:var(--text-muted)}
+.mok-steps li span{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header id="header">
+    <span class="logo">ARK<span>ON</span></span>
+    <span class="version">Installer 0.1.0</span>
+    <span class="spacer"></span>
+    <button id="theme-toggle" title="Toggle theme" aria-label="Toggle colour theme">◑</button>
+  </header>
+
+  <!-- Sidebar -->
+  <nav id="sidebar" aria-label="Installation steps"></nav>
+
+  <!-- Main content -->
+  <main id="main" aria-live="polite" aria-atomic="true"></main>
+
+  <!-- Footer nav -->
+  <footer id="footer">
+    <button class="btn btn-secondary" id="btn-back">Back</button>
+    <button class="btn btn-primary" id="btn-next">Continue</button>
+  </footer>
+</div>
+
+<script>
+"use strict";
+// ── State ──────────────────────────────────────────────────────────────────
+const STATE = {
+  currentScreen: 0,
+  language: null,
+  keyboard: null,
+  keyboardTest: "",
+  mode: null,
+  selectedDisk: null,
+  encryption: false,
+  bitlockerAck: false,
+  phraseTyped: "",
+  username: "",
+  fullName: "",
+  password: "",
+  passwordConfirm: "",
+  hostname: "",
+  executing: false,
+  progressFraction: 0,
+  progressStep: "",
+  failed: false,
+  failureClass: null,
+  failureDetail: "",
+  mok: false,
+};
+
+// ── Mock data (browser preview — no Tauri) ────────────────────────────────
+const MOCK = {
+  version: "0.1.0 — dev",
+  languages: [
+    {tag:"en-US",name:"English (United States)"},
+    {tag:"de-DE",name:"Deutsch (Deutschland)"},
+    {tag:"fr-FR",name:"Français (France)"},
+    {tag:"es-ES",name:"Español (España)"},
+    {tag:"ja-JP",name:"日本語"},
+    {tag:"zh-CN",name:"中文（简体）"},
+  ],
+  keyboards: [
+    {id:"us",name:"English (US)"},{id:"gb",name:"English (UK)"},
+    {id:"de",name:"German"},{id:"fr",name:"French"},
+    {id:"us-dv",name:"English (US, Dvorak)"},{id:"us-co",name:"English (US, Colemak)"},
+  ],
+  hwChecks: [
+    {label:"UEFI firmware",passed:true,detail:null},
+    {label:"x86-64-v2 CPU baseline",passed:true,detail:null},
+    {label:"Memory (≥ 4 GiB)",passed:true,detail:"15.4 GiB available"},
+    {label:"Payload digest",passed:true,detail:null},
+    {label:"Secure Boot state",passed:true,detail:"Secure Boot on"},
+  ],
+  recommendedVariant: "arkon-nvidia-turing",
+  disks: [
+    {id:"/dev/nvme0n1",model:"SAMSUNG MZALQ512HBLU-000H1",serialTail:"1234",sizeBytes:512110190592,
+     eligibleModes:["EraseDisk","DualBoot"],blockers:[],warnings:[],
+     detectedOs:[{kind:"windows",name:"Windows 11",diskId:"/dev/nvme0n1"}]},
+  ],
+  modes:[
+    {id:"EraseDisk",label:"Clean install — erase entire disk",destructive:true,
+     detail:"Removes all data on the selected disk and installs ARKON OS."},
+    {id:"DualBoot",label:"Install alongside Windows",destructive:false,
+     detail:"Shrinks the Windows partition and installs ARKON OS in the freed space."},
+    {id:"FreeSpace",label:"Use unallocated space",destructive:false,
+     detail:"Installs in existing free space without touching current partitions."},
+  ],
+  mockPhrase: "samsung-1234",
+  partitions: [
+    {number:1,label:"EFI System Partition",sizeBytes:1073741824,fsType:"vfat",role:"ESP",isNew:true},
+    {number:2,label:"ARKON Boot",sizeBytes:2147483648,fsType:"ext4",role:"Boot",isNew:true},
+    {number:3,label:"ARKON Root",sizeBytes:53687091200,fsType:"btrfs",role:"Root",isNew:true},
+  ],
+};
+
+// ── Screens definition ─────────────────────────────────────────────────────
+const SCREENS = [
+  {id:"welcome",         title:"Welcome to ARKON OS",    sidebar:"Welcome"},
+  {id:"language",        title:"Language",               sidebar:"Language"},
+  {id:"keyboard",        title:"Keyboard Layout",        sidebar:"Keyboard"},
+  {id:"network",         title:"Network",                sidebar:"Network"},
+  {id:"hardware",        title:"Hardware Compatibility", sidebar:"Hardware"},
+  {id:"profile",         title:"Installation Profile",   sidebar:"Profile"},
+  {id:"storage",         title:"Select Disk",            sidebar:"Storage"},
+  {id:"partitions",      title:"Partition Layout",       sidebar:"Partitions"},
+  {id:"summary",         title:"Review & Confirm",       sidebar:"Summary"},
+  {id:"confirm-destroy", title:"Confirm Erasure",        sidebar:"Confirmation"},
+  {id:"progress",        title:"Installing",             sidebar:"Installing"},
+  {id:"error",           title:"Installation Failed",    sidebar:"Error"},
+  {id:"complete",        title:"Installation Complete",  sidebar:"Complete"},
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmt(bytes){
+  if(bytes>=1e12) return (bytes/1e12).toFixed(1)+" TB";
+  if(bytes>=1e9)  return (bytes/1e9).toFixed(0)+" GB";
+  return (bytes/1e6).toFixed(0)+" MB";
+}
+function esc(str){
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────
+function renderSidebar(){
+  const nav=document.getElementById("sidebar");
+  // Exclude error/complete from normal step numbering
+  const visibleScreens = SCREENS.filter(s=>s.id!=="error");
+  nav.innerHTML=visibleScreens.map((s,i)=>{
+    const idx=SCREENS.indexOf(s);
+    const done=idx<STATE.currentScreen && s.id!=="error";
+    const active=idx===STATE.currentScreen;
+    return `<div class="step-item${active?" active":""}${done?" done":""}">
+      <div class="step-dot">${done?"✓":i+1}</div>
+      <span>${esc(s.sidebar)}</span>
+    </div>`;
+  }).join("");
+}
+
+// ── Screen renderers ──────────────────────────────────────────────────────
+function renderWelcome(){
+  return `<div class="screen">
+    <div class="screen-title">Welcome to ARKON OS</div>
+    <div class="screen-subtitle">The focused Linux desktop — built on Fedora bootc</div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+        This installer will guide you through setting up ARKON OS on your machine.<br>
+        The process takes about 10–20 minutes depending on your hardware.<br><br>
+        <strong>Before you begin:</strong><br>
+        • Back up any important data on the target disk.<br>
+        • For dual-boot: ensure you have your Windows recovery key if BitLocker is enabled.<br>
+        • Connect power — do not install on battery alone.
+      </div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px">⚡</div>
+      <div>
+        <div style="font-size:14px;font-weight:600">Detected hardware</div>
+        <div style="font-size:13px;color:var(--text-muted)">AMD Ryzen 5 4600H · NVIDIA GTX 1650 (Turing) · 15.4 GiB RAM</div>
+        <div style="margin-top:4px"><span class="badge info">${esc(MOCK.recommendedVariant)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLanguage(){
+  return `<div class="screen">
+    <div class="screen-title">Language</div>
+    <div class="screen-subtitle">Choose the language for the installed system.</div>
+    <div class="section-label">Select language</div>
+    ${MOCK.languages.map(l=>`
+    <div class="card selectable${STATE.language===l.tag?" selected":""}"
+         onclick="STATE.language='${esc(l.tag)}';render()" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){STATE.language='${esc(l.tag)}';render()}"
+         role="option" aria-selected="${STATE.language===l.tag}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span>${esc(l.name)}</span>
+        ${STATE.language===l.tag?'<span style="color:var(--accent)">✓</span>':''}
+      </div>
+    </div>`).join("")}
+  </div>`;
+}
+
+function renderKeyboard(){
+  const test = STATE.keyboardTest||"";
+  return `<div class="screen">
+    <div class="screen-title">Keyboard Layout</div>
+    <div class="screen-subtitle">Choose the keyboard layout for the installed system.</div>
+    <div class="section-label">Layout</div>
+    <div class="field" style="margin-bottom:24px">
+      <select onchange="STATE.keyboard=this.value;render()">
+        <option value="">— select —</option>
+        ${MOCK.keyboards.map(k=>`<option value="${esc(k.id)}"${STATE.keyboard===k.id?" selected":""}>${esc(k.name)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="section-label">Test your layout</div>
+    <div class="field">
+      <input type="text" placeholder="Type here to test your keyboard layout"
+             value="${esc(test)}"
+             oninput="STATE.keyboardTest=this.value">
+    </div>
+  </div>`;
+}
+
+function renderNetwork(){
+  return `<div class="screen">
+    <div class="screen-title">Network</div>
+    <div class="screen-subtitle">ARKON OS can be installed offline. Network is used only for time synchronisation.</div>
+    <div class="card" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+      <div style="font-size:28px">📡</div>
+      <div>
+        <div style="font-weight:600">Connected — Ethernet</div>
+        <div style="font-size:13px;color:var(--text-muted)">Network is optional for this offline installation.</div>
+      </div>
+      <span class="badge ok" style="margin-left:auto">Connected</span>
+    </div>
+    <div class="card" style="font-size:13px;color:var(--text-muted)">
+      All required packages are included in the installation medium.<br>
+      No internet connection is required to complete installation.
+    </div>
+  </div>`;
+}
+
+function renderHardware(){
+  const allPassed = MOCK.hwChecks.every(c=>c.passed);
+  return `<div class="screen">
+    <div class="screen-title">Hardware Compatibility</div>
+    <div class="screen-subtitle">Checking your system meets the installation requirements.</div>
+    <div class="card" style="margin-bottom:20px">
+      ${MOCK.hwChecks.map(c=>`
+      <div class="check-row">
+        <div class="check-icon ${c.passed?"pass":"fail"}">${c.passed?"✓":"✗"}</div>
+        <div>
+          <div class="check-label">${esc(c.label)}</div>
+          ${c.detail?`<div class="check-detail">${esc(c.detail)}</div>`:''}
+        </div>
+      </div>`).join("")}
+    </div>
+    ${allPassed
+      ?`<div style="display:flex;align-items:center;gap:10px;color:var(--ok);font-size:14px">
+          <span>✓</span><span>All requirements met. Recommended variant: <strong>${esc(MOCK.recommendedVariant)}</strong></span>
+        </div>`
+      :`<div class="error-box"><div class="error-title">Hardware requirements not met</div>
+         <div class="error-detail">Installation cannot proceed. See details above.</div></div>`
+    }
+  </div>`;
+}
+
+function renderProfile(){
+  return `<div class="screen">
+    <div class="screen-title">Installation Profile</div>
+    <div class="screen-subtitle">Choose how ARKON OS will be installed on this machine.</div>
+    ${MOCK.modes.map(m=>`
+    <div class="card selectable${STATE.mode===m.id?" selected":""}"
+         onclick="STATE.mode='${esc(m.id)}';render()" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){STATE.mode='${esc(m.id)}';render()}"
+         role="option" aria-selected="${STATE.mode===m.id}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-weight:600">${esc(m.label)}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:3px">${esc(m.detail)}</div>
+        </div>
+        <span class="badge ${m.destructive?"err":"info"}" style="flex-shrink:0">
+          ${m.destructive?"Destructive":"Non-destructive"}
+        </span>
+      </div>
+    </div>`).join("")}
+    <div class="card" style="margin-top:20px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+        <input type="checkbox" ${STATE.encryption?"checked":""} onchange="STATE.encryption=this.checked;render()">
+        <div>
+          <span style="font-weight:600">Enable disk encryption (LUKS2)</span>
+          <div style="font-size:13px;color:var(--text-muted)">You will be asked for a passphrase at every boot.</div>
+        </div>
+      </label>
+    </div>
+  </div>`;
+}
+
+function renderStorage(){
+  const disk=MOCK.disks[0];
+  const hasWindows=disk.detectedOs.some(o=>o.kind==="windows");
+  const isBitlocker=false;
+  return `<div class="screen">
+    <div class="screen-title">Select Disk</div>
+    <div class="screen-subtitle">Choose the disk on which ARKON OS will be installed.</div>
+    ${MOCK.disks.map(d=>`
+    <div class="card selectable${STATE.selectedDisk===d.id?" selected":""}"
+         onclick="STATE.selectedDisk='${esc(d.id)}';render()" tabindex="0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:24px">💾</div>
+        <div style="flex:1">
+          <div style="font-weight:600">${esc(d.model)}</div>
+          <div style="font-size:13px;color:var(--text-muted)">${fmt(d.sizeBytes)} · ${esc(d.id)}</div>
+          ${d.detectedOs.map(o=>`<span class="badge warn" style="margin-top:4px">${esc(o.name)}</span>`).join(" ")}
+        </div>
+        ${STATE.selectedDisk===d.id?'<span style="color:var(--accent);font-size:18px">✓</span>':''}
+      </div>
+    </div>`).join("")}
+    ${hasWindows&&STATE.mode==="DualBoot"?`
+    <div class="card" style="margin-top:16px;border-color:rgba(247,167,79,.35)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="color:var(--warn);font-size:18px">⚠</span>
+        <div>
+          <div style="font-weight:600;color:var(--warn)">Windows detected</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">
+            Dual-boot mode will shrink the Windows partition. Existing data will be preserved.<br>
+            Ensure you have your Windows BitLocker recovery key before proceeding.
+          </div>
+        </div>
+      </div>
+    </div>`:''}
+    ${hasWindows&&STATE.mode==="EraseDisk"?`
+    <div class="card" style="margin-top:16px;border-color:rgba(247,95,95,.35)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="color:var(--err);font-size:18px">⚠</span>
+        <div>
+          <div style="font-weight:600;color:var(--err)">Erase disk — Windows will be deleted</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">
+            All data on this disk, including Windows and its recovery partition, will be permanently removed.
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;cursor:pointer">
+            <input type="checkbox" ${STATE.bitlockerAck?"checked":""}
+                   onchange="STATE.bitlockerAck=this.checked;render()">
+            I have my Windows BitLocker recovery key (if applicable).
+          </label>
+        </div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function renderPartitions(){
+  return `<div class="screen">
+    <div class="screen-title">Partition Layout</div>
+    <div class="screen-subtitle">The following partitions will be created on the selected disk.</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+        Target: <strong>${esc(MOCK.disks[0].model)}</strong> — ${fmt(MOCK.disks[0].sizeBytes)}
+        ${STATE.mode==="DualBoot"?' · <span style="color:var(--ok)">Windows will be preserved</span>':''}
+      </div>
+      <table class="part-table">
+        <thead><tr><th>#</th><th>Label</th><th>Role</th><th>Size</th><th>Filesystem</th></tr></thead>
+        <tbody>
+          ${MOCK.partitions.map(p=>`<tr>
+            <td>${p.number}</td>
+            <td class="${p.isNew?"new":"existing"}">${esc(p.label)}</td>
+            <td>${esc(p.role)}</td>
+            <td>${fmt(p.sizeBytes)}</td>
+            <td><code style="font-family:var(--mono);font-size:12px">${esc(p.fsType)}</code></td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+      ${STATE.encryption?`<div style="margin-top:14px;font-size:13px;color:var(--accent)">🔒 Root partition will be encrypted (LUKS2)</div>`:''}
+    </div>
+    ${STATE.mode==="DualBoot"?`<div class="card" style="margin-top:12px">
+      <div style="font-size:13px">
+        <span class="badge ok">✓</span>
+        <span style="margin-left:8px">Windows boot entry will be preserved. No existing partitions will be modified.</span>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function renderSummary(){
+  const disk=MOCK.disks[0];
+  const isDestructive=STATE.mode==="EraseDisk"||STATE.mode==="ReinstallKeepHome";
+  return `<div class="screen">
+    <div class="screen-title">Review & Confirm</div>
+    <div class="screen-subtitle">Review your choices before installation begins.</div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:12px">System</div>
+      ${[
+        ["Language",STATE.language||"—"],
+        ["Keyboard",STATE.keyboard||"—"],
+        ["Hostname",STATE.hostname||"arkon-laptop"],
+        ["Username",STATE.username||"—"],
+        ["Encryption",STATE.encryption?"Enabled (LUKS2)":"Disabled"],
+        ["Variant",MOCK.recommendedVariant],
+      ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">
+        <span style="color:var(--text-muted)">${esc(k)}</span><span>${esc(v)}</span>
+      </div>`).join("")}
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:12px">Disk</div>
+      <div style="font-size:14px">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted)">Target</span>
+          <span>${esc(disk.model)} — ${fmt(disk.sizeBytes)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted)">Mode</span>
+          <span class="badge ${isDestructive?"err":"info"}">${esc(STATE.mode||"—")}</span>
+        </div>
+        ${STATE.mode==="DualBoot"?`<div style="display:flex;justify-content:space-between;padding:6px 0">
+          <span style="color:var(--text-muted)">Windows</span>
+          <span class="badge ok">Preserved</span>
+        </div>`:''}
+      </div>
+    </div>
+    ${isDestructive?`<div class="card" style="border-color:rgba(247,95,95,.35)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="color:var(--err);font-size:18px">⚠</span>
+        <div style="font-size:13px;color:var(--text-muted)">
+          <strong style="color:var(--err)">Destructive operation.</strong>
+          All data on the selected disk will be permanently erased. This cannot be undone.
+        </div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function renderConfirmDestroy(){
+  const phrase=MOCK.mockPhrase;
+  const typed=STATE.phraseTyped||"";
+  const matched=typed===phrase;
+  return `<div class="screen">
+    <div class="screen-title">Confirm Disk Erasure</div>
+    <div class="screen-subtitle">This operation will permanently destroy all data on the selected disk.</div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.8">
+        To confirm, type the phrase shown below exactly as written.
+        This phrase is derived from your target disk's model and serial number.
+      </div>
+      <div class="phrase-display">${esc(phrase)}</div>
+      <div class="field">
+        <label>Confirmation phrase</label>
+        <input class="phrase-input${typed?matched?" matched":" unmatched":""}"
+               type="text" placeholder="Type the phrase above"
+               value="${esc(typed)}"
+               oninput="STATE.phraseTyped=this.value;render()">
+      </div>
+      ${STATE.mode==="EraseDisk"?`
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;cursor:pointer;margin-top:8px">
+        <input type="checkbox" style="margin-top:2px" ${STATE.bitlockerAck?"checked":""}
+               onchange="STATE.bitlockerAck=this.checked;render()">
+        <span>I confirm I have my Windows BitLocker recovery key (if applicable) and understand all data will be erased.</span>
+      </label>`:''}
+    </div>
+    ${!matched&&typed?`<div style="font-size:13px;color:var(--err)">Phrase does not match. Check capitalisation and spacing.</div>`:''}
+  </div>`;
+}
+
+function renderProgress(){
+  const pct = Math.round(STATE.progressFraction * 100);
+  return `<div class="screen">
+    <div class="screen-title">Installing ARKON OS</div>
+    <div class="screen-subtitle" id="progress-step">${esc(STATE.progressStep||"Preparing...")}</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div style="text-align:right;font-size:13px;color:var(--text-muted);margin-top:-8px;margin-bottom:20px">${pct}%</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+        Installation is in progress. <strong>Do not turn off your computer.</strong><br>
+        ${pct>=10?"✓ Disk prepared. ":""}
+        ${pct>=40?"✓ ARKON OS deployed. ":""}
+        ${pct>=90?"✓ Boot entry registered. ":""}
+      </div>
+    </div>
+    ${!STATE.executing?`<div style="margin-top:20px;text-align:center">
+      <div style="font-size:13px;color:var(--text-muted)">(Mock mode — click Continue to advance)</div>
+    </div>`:''}
+  </div>`;
+}
+
+function renderError(){
+  return `<div class="screen">
+    <div class="screen-title" style="color:var(--err)">Installation Failed</div>
+    <div class="screen-subtitle">An error occurred during installation.</div>
+    <div class="error-box" style="margin-bottom:16px">
+      <div class="error-title">F-DEPLOY — Deployment failed at step X6</div>
+      <div class="error-detail" style="margin-top:4px">
+        bootc install to-filesystem exited with code 1.<br>
+        ARKON partitions were created but contain no bootable system.
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-label">Disk condition</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:8px">
+        ARKON partitions exist on <strong>SAMSUNG MZALQ512HBLU</strong> but hold no bootable system.<br>
+        Windows and its data are <span style="color:var(--ok)">not affected</span>.
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">What you can do</div>
+      <div class="row" onclick="goTo(10)" style="cursor:pointer">
+        <span style="font-size:16px">🔁</span>
+        <div><div style="font-weight:600">Retry deployment</div>
+          <div style="font-size:13px;color:var(--text-muted)">Attempt to re-deploy without repartitioning.</div></div>
+      </div>
+      <div class="row">
+        <span style="font-size:16px">🧹</span>
+        <div><div style="font-weight:600">Remove ARKON partitions</div>
+          <div style="font-size:13px;color:var(--text-muted)">Clean up this run's partitions and return to storage selection.</div></div>
+      </div>
+      <div class="row">
+        <span style="font-size:16px">📋</span>
+        <div><div style="font-weight:600">View installation log</div>
+          <div style="font-size:13px;color:var(--text-muted)">Export the full log for support.</div></div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="section-label">Log (last 5 lines)</div>
+      <div class="mono-box">[X5] Mounted /dev/nvme0n1p1 at /run/arkon/esp
+[X6] Checking payload digest… ok
+[X6] Running: bootc install to-filesystem /run/arkon/root
+[X6] error: container not found in local store
+[X6] FAIL — exit code 1</div>
+    </div>
+  </div>`;
+}
+
+function renderComplete(){
+  return `<div class="screen">
+    <div class="complete-icon">🎉</div>
+    <div class="screen-title">Installation Complete</div>
+    <div class="screen-subtitle">ARKON OS has been installed successfully.</div>
+    ${STATE.mok?`<div class="card" style="margin-bottom:16px;border-color:rgba(247,167,79,.35)">
+      <div class="mok-steps">
+        <div style="font-weight:600;color:var(--warn);margin-bottom:10px">⚠ Secure Boot — certificate enrolment required</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+          The ARKON module-signing certificate has been queued for enrolment.
+          On the next boot you will see the MOK Manager screen. Follow these steps:
+        </div>
+        <ul style="font-size:13px;color:var(--text-muted);list-style:decimal;padding-left:20px;line-height:2">
+          <li>Select <span>Enroll MOK</span></li>
+          <li>Select <span>Continue</span></li>
+          <li>Select <span>Yes</span></li>
+          <li>Enter the one-time password shown below</li>
+          <li>Select <span>Reboot</span></li>
+        </ul>
+        <div class="phrase-display" style="margin:12px 0;font-size:14px">arkon-mok-1234</div>
+      </div>
+    </div>`:''}
+    <div class="card">
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.8">
+        Remove the installation medium and restart your computer.<br>
+        ARKON OS will start automatically.
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Render dispatch ───────────────────────────────────────────────────────
+const RENDERERS = [
+  renderWelcome, renderLanguage, renderKeyboard, renderNetwork,
+  renderHardware, renderProfile, renderStorage, renderPartitions,
+  renderSummary, renderConfirmDestroy, renderProgress, renderError, renderComplete,
+];
+
+function render(){
+  renderSidebar();
+  document.getElementById("main").innerHTML = RENDERERS[STATE.currentScreen]();
+
+  // Footer buttons
+  const idx = STATE.currentScreen;
+  const back = document.getElementById("btn-back");
+  const next = document.getElementById("btn-next");
+  const isFirst = idx===0;
+  const isProgress = idx===10;
+  const isError = idx===11;
+  const isComplete = idx===12;
+  const isDestructiveConfirm = idx===9;
+
+  back.style.display = (isFirst||isProgress||isComplete) ? "none" : "";
+  back.onclick = () => goTo(idx-1);
+
+  if(isProgress){
+    next.textContent = "Installing…";
+    next.disabled = true;
+    // Simulate progress in mock mode
+    if(STATE.progressFraction===0){
+      simulateProgress();
+    }
+  } else if(isError){
+    next.style.display="none";
+  } else if(isComplete){
+    next.textContent = "Restart Now";
+    next.className = "btn btn-primary";
+    next.disabled = false;
+    next.onclick = () => alert("(Mock) Rebooting…");
+  } else if(isDestructiveConfirm){
+    next.textContent = "Erase Disk and Install";
+    next.className = "btn btn-danger";
+    const matched = STATE.phraseTyped===MOCK.mockPhrase;
+    next.disabled = !matched;
+    next.onclick = matched ? () => goTo(idx+1) : null;
+  } else {
+    next.textContent = "Continue";
+    next.className = "btn btn-primary";
+    next.disabled = false;
+    next.onclick = () => goTo(idx+1);
+  }
+}
+
+function goTo(idx){
+  if(idx<0||idx>=SCREENS.length) return;
+  STATE.currentScreen=idx;
+  if(idx===10) STATE.progressFraction=0;
+  window.scrollTo(0,0);
+  render();
+}
+
+// ── Mock progress simulation ───────────────────────────────────────────────
+function simulateProgress(){
+  const steps=[
+    {f:0.05,s:"Preparing installation environment"},
+    {f:0.10,s:"Saving current disk state"},
+    {f:0.30,s:"Partitioning and formatting"},
+    {f:0.35,s:"Verifying partition layout"},
+    {f:0.40,s:"Mounting partitions"},
+    {f:0.85,s:"Deploying ARKON OS"},
+    {f:0.88,s:"Verifying deployment"},
+    {f:0.91,s:"Writing first-boot configuration"},
+    {f:0.94,s:"Registering boot entry"},
+    {f:0.97,s:"Finalising installation"},
+    {f:1.00,s:"Complete"},
+  ];
+  let i=0;
+  function advance(){
+    if(STATE.currentScreen!==10) return;
+    if(i>=steps.length){ goTo(12); return; }
+    STATE.progressFraction=steps[i].f;
+    STATE.progressStep=steps[i].s;
+    i++;
+    document.querySelector(".progress-fill").style.width=(STATE.progressFraction*100)+"%";
+    document.querySelector(".screen-subtitle").textContent=STATE.progressStep;
+    document.querySelector("#footer #btn-next") && (document.getElementById("btn-next").disabled=true);
+    const delay = steps[i-1].f<0.4 ? 600 : steps[i-1].f<0.85 ? 1200 : 500;
+    setTimeout(advance, delay);
+  }
+  setTimeout(advance, 400);
+}
+
+// ── Theme toggle ───────────────────────────────────────────────────────────
+document.getElementById("theme-toggle").onclick=function(){
+  const root=document.documentElement;
+  const cur=root.getAttribute("data-theme");
+  if(!cur||cur==="dark"){ root.setAttribute("data-theme","light"); this.textContent="☀"; }
+  else { root.setAttribute("data-theme","dark"); this.textContent="◑"; }
+};
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# ARKON NVIDIA variant packages — userspace driver and container toolkit
+# Kernel modules are NOT installed here; they come from the kmods/ pipeline
+# as pre-built RPM packages copied into the image at build time.
+# The image build will fail if the kmod RPMs are not present (enforced in
+# the Containerfile COPY step).
+#
+# Driver version: 615.x branch (supports Turing and newer — D-005).
+# RPM Fusion nonfree provides the driver RPMs (D-007).
+
+# NVIDIA userspace driver
+xorg-x11-drv-nvidia
+xorg-x11-drv-nvidia-cuda
+xorg-x11-drv-nvidia-cuda-libs
+xorg-x11-drv-nvidia-libs
+xorg-x11-drv-nvidia-libs.i686
+nvidia-settings
+nvidia-modprobe
+
+# Container GPU passthrough (CDI)
+nvidia-container-toolkit
+
+# 32-bit libs for 32-bit Steam/Proton titles on NVIDIA
+xorg-x11-drv-nvidia-libs.i686

@@ -1,0 +1,35 @@
+# Rust build output
+target/
+**/*.rs.bk
+
+# Build artifacts (large binary files — not tracked in git)
+artifacts/qcow2/*.qcow2
+artifacts/qcow2/*.vmdk
+artifacts/iso/*.iso
+artifacts/checksums/*.sha256
+artifacts/logs/*.log
+artifacts/logs/*.json
+
+# VMware working files (generated from arkon.vmx)
+vm/vmware/*.vmdk
+vm/vmware/*.vmsd
+vm/vmware/*.vmem
+vm/vmware/*.nvram
+vm/vmware/*.vmx.lck/
+
+# QEMU EFI NVRAM (created fresh each launch)
+vm/qemu/*.fd
+
+# Build metadata (generated)
+build/metadata/*.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/settings.json
+
+# Podman / container caches
+*.oci

@@ -1,0 +1,136 @@
+# ARKON OS — multi-stage Containerfile
+#
+# Build targets:
+#   arkon         Mesa drivers, no NVIDIA components
+#   arkon-nvidia  NVIDIA userspace + pre-built signed kmod RPMs
+#
+# Usage (Linux host with Podman; see build/scripts/build-image.sh):
+#   podman build --target arkon        --tag localhost/arkon:latest        .
+#   podman build --target arkon-nvidia --tag localhost/arkon-nvidia:latest .
+#
+# Base image is pinned by tag in this draft. Production CI pins by digest (D-023).
+# Verification item V-01: confirm quay.io/fedora/fedora-bootc:45 is accessible.
+
+ARG FEDORA_RELEASE=45
+ARG BASE_IMAGE=quay.io/fedora/fedora-bootc:${FEDORA_RELEASE}
+
+# ── Stage 1: base ─────────────────────────────────────────────────────────────
+# Adds RPM Fusion repos, installs base packages, removes unwanted ones.
+# This stage is shared by all variants and should change rarely.
+
+FROM ${BASE_IMAGE} AS base
+
+ARG FEDORA_RELEASE
+
+# Copy allow-listed repository files (D-007: no unapproved repositories).
+COPY image/repos/rpmfusion-free.repo    /etc/yum.repos.d/rpmfusion-free.repo
+COPY image/repos/rpmfusion-nonfree.repo /etc/yum.repos.d/rpmfusion-nonfree.repo
+
+# Install RPM Fusion GPG keys before trusting the repositories.
+RUN rpm --import \
+    https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-${FEDORA_RELEASE} \
+    https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-${FEDORA_RELEASE}
+
+# Copy and install base package list.
+COPY image/packages/base.txt /tmp/packages-base.txt
+RUN dnf install -y \
+    $(grep -v '^#' /tmp/packages-base.txt | grep -v '^$') \
+    && dnf clean all \
+    && rm -f /tmp/packages-base.txt
+
+# Remove explicitly unwanted packages.
+COPY image/packages/removed.txt /tmp/packages-removed.txt
+RUN removed=$(grep -v '^#' /tmp/packages-removed.txt | grep -v '^$'); \
+    if [ -n "$removed" ]; then dnf remove -y $removed && dnf clean all; fi \
+    && rm -f /tmp/packages-removed.txt
+
+# Copy base kernel arguments (applied by bootupd/bootc at install time — V-10).
+COPY image/rootfs/usr/lib/bootc/kargs.d/arkon-base.conf \
+     /usr/lib/bootc/kargs.d/arkon-base.conf
+
+# ── Stage 2: desktop ──────────────────────────────────────────────────────────
+# KDE Plasma 6.8 on Wayland, PipeWire audio, Flatpak.
+
+FROM base AS desktop
+
+COPY image/packages/desktop.txt /tmp/packages-desktop.txt
+RUN dnf install -y \
+    $(grep -v '^#' /tmp/packages-desktop.txt | grep -v '^$') \
+    && dnf clean all \
+    && rm -f /tmp/packages-desktop.txt
+
+# Enable the display manager so the graphical target starts on first boot.
+RUN systemctl enable sddm.service
+
+# Disable the automatic console-login that fedora-bootc ships by default —
+# ARKON requires authentication.
+RUN systemctl disable getty@tty1.service || true
+
+# ── Stage 3: gaming ───────────────────────────────────────────────────────────
+# Steam, Gamescope, MangoHud. Requires RPM Fusion nonfree for Steam.
+
+FROM desktop AS gaming
+
+COPY image/packages/gaming.txt /tmp/packages-gaming.txt
+RUN dnf install -y \
+    $(grep -v '^#' /tmp/packages-gaming.txt | grep -v '^$') \
+    && dnf clean all \
+    && rm -f /tmp/packages-gaming.txt
+
+# Enable GameMode daemon.
+RUN systemctl enable gamemoded.service || true
+
+# ── Target: arkon (Mesa, no NVIDIA) ───────────────────────────────────────────
+
+FROM gaming AS arkon
+
+# ARKON services placeholder.
+# Phase 4+ will install RPMs built from the services/ workspace here:
+#   COPY --from=packaging /rpms/ /tmp/arkon-rpms/
+#   RUN dnf install -y /tmp/arkon-rpms/*.rpm && dnf clean all
+
+# Image labels for the updater to read (D-023).
+LABEL org.arkonos.variant="arkon" \
+      org.arkonos.fedora="${FEDORA_RELEASE}" \
+      org.arkonos.build.timestamp="" \
+      org.opencontainers.image.description="ARKON OS — Mesa variant"
+
+# Verify the image is a valid bootc container before accepting it.
+RUN bootc container lint
+
+# ── Target: arkon-nvidia ──────────────────────────────────────────────────────
+# Adds NVIDIA userspace driver and pre-built signed kmod RPMs from kmods/.
+# The kmod RPMs are NOT built in this Containerfile; they must be present
+# in kmods/output/ before this target can be built (see build/scripts/).
+
+FROM gaming AS arkon-nvidia
+
+# NVIDIA userspace packages from RPM Fusion nonfree.
+COPY image/packages/nvidia.txt /tmp/packages-nvidia.txt
+RUN dnf install -y \
+    $(grep -v '^#' /tmp/packages-nvidia.txt | grep -v '^$') \
+    && dnf clean all \
+    && rm -f /tmp/packages-nvidia.txt
+
+# Pre-built signed kernel modules (produced by kmods/ pipeline — Phase 1).
+# BUILD WILL FAIL HERE until kmods/ is implemented.
+# To build arkon-nvidia you must first run: just build-kmods open
+# (or just build-kmods closed for the Turing closed-module flavour).
+COPY kmods/output/*.rpm /tmp/arkon-kmods/
+RUN dnf install -y /tmp/arkon-kmods/*.rpm \
+    && dnf clean all \
+    && rm -rf /tmp/arkon-kmods
+
+# NVIDIA-specific kernel arguments.
+COPY image/rootfs/usr/lib/bootc/kargs.d/arkon-nvidia.conf \
+     /usr/lib/bootc/kargs.d/arkon-nvidia.conf
+
+# ARKON services placeholder (same as arkon target — Phase 4+).
+
+# Image labels.
+LABEL org.arkonos.variant="arkon-nvidia" \
+      org.arkonos.fedora="${FEDORA_RELEASE}" \
+      org.arkonos.build.timestamp="" \
+      org.opencontainers.image.description="ARKON OS — NVIDIA variant"
+
+RUN bootc container lint

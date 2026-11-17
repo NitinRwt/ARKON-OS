@@ -1,0 +1,7 @@
+# Packages explicitly removed from fedora-bootc:45 for ARKON.
+# The build script runs: dnf remove -y $(grep -v '^#' removed.txt | grep -v '^$')
+# Remove only packages confirmed to be unnecessary; do not speculate.
+
+# No packages removed in this initial revision.
+# Common candidates to evaluate: unwanted server daemons, debug packages.
+# Document the reason when any package is added here.

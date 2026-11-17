@@ -1,0 +1,30 @@
+# ARKON gaming stage packages — Steam, Gamescope, MangoHud
+# Requires RPM Fusion nonfree for Steam.
+# i686 packages are still present in Fedora 45 (withdrawal proposal rejected).
+
+# Steam client — native RPM from RPM Fusion nonfree (D-017)
+steam
+
+# Gamescope — Wayland nested compositor for gaming sessions
+gamescope
+
+# MangoHud — in-game performance overlay
+mangohud
+goverlay
+
+# Controller and joystick support
+gamemode
+libgamemode
+usbutils
+# udev rules for common controllers come via steam-devices
+steam-devices
+
+# Vulkan (userspace — mesa provides the ICD for AMD/Intel; nvidia variant adds its own)
+vulkan-loader
+vulkan-tools
+
+# 32-bit Vulkan for 32-bit Steam titles
+vulkan-loader.i686
+
+# WINE compatibility (optional; most users rely on Proton inside Steam)
+# Not installed here; available as Flatpak at user request.

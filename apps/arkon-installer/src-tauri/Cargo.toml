@@ -1,0 +1,21 @@
+[package]
+name = "arkon-installer-app"
+version = "0.1.0"
+edition = "2021"
+# Not in the workspace: Tauri requires Linux build deps (WebKitGTK) not available on Windows.
+# Build on the Linux live image build host or in a Linux container.
+
+[dependencies]
+arkon-installer = { path = "../../crates/arkon-installer" }
+arkon-hw        = { path = "../../crates/arkon-hw" }
+arkon-storage   = { path = "../../crates/arkon-storage" }
+arkon-boot      = { path = "../../crates/arkon-boot" }
+serde       = { version = "1.0", features = ["derive"] }
+serde_json  = "1.0"
+thiserror   = "1.0"
+# tauri = { version = "2", features = ["protocol-asset"] }  # uncomment on Linux build host
+
+[profile.release]
+lto     = true
+codegen-units = 1
+strip   = true

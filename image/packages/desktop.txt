@@ -1,0 +1,68 @@
+# ARKON desktop stage packages — KDE Plasma 6.8 on Wayland
+# Fedora 45 ships Plasma 6.8.2. X11 session is not installed; Xwayland for
+# compatibility apps.
+
+# KDE Plasma desktop group (pulls in plasma-workspace, kwin, etc.)
+@kde-desktop-environment
+
+# Wayland session support
+plasma-wayland-protocols
+kwayland
+xwayland
+
+# Display manager
+sddm
+sddm-kcm
+
+# Audio — PipeWire stack
+pipewire
+pipewire-pulseaudio
+pipewire-alsa
+pipewire-jack-audio-connection-kit
+wireplumber
+qpwgraph
+
+# Bluetooth integration
+bluedevil
+
+# Network management in Plasma
+plasma-nm
+
+# Printing
+cups
+print-manager
+
+# File manager
+dolphin
+ark
+filelight
+
+# Media
+haruna
+# Flameshot for screenshots (Spectacle is the KDE default)
+spectacle
+
+# Browser (Fedora provides Firefox as a base; full app via Flatpak)
+firefox
+
+# Fonts — extended set for the desktop
+google-noto-emoji-fonts
+liberation-fonts
+google-noto-cjk-fonts-common
+
+# Accessibility
+at-spi2-core
+
+# Theming
+breeze-icon-theme
+plasma-breeze
+kde-gtk-config
+
+# Flatpak (user scope; no system Flatpaks in the image)
+flatpak
+xdg-desktop-portal
+xdg-desktop-portal-kde
+
+# Hardware support
+upower
+power-profiles-daemon
