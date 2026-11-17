@@ -1,4 +1,4 @@
-name: Build ARKON ISO
+name: Build ARKON Disk Image
 
 on:
   push:
@@ -10,8 +10,14 @@ on:
         required: false
         default: 'arkon'
 
+# Builds a QCOW2 disk image directly bootable in QEMU, VirtualBox, and VMware.
+# anaconda-iso requires bootc-image-builder to have Fedora 45 distro data
+# (repo definitions for the Anaconda installer environment) which the current
+# CentOS-based bib container does not ship. QCOW2 has no such dependency —
+# it repackages the already-built container layers into a disk image.
+
 jobs:
-  build-iso:
+  build-disk-image:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -30,11 +36,11 @@ jobs:
           VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
           sudo bash build/scripts/build-image.sh "${VARIANT}"
 
-      - name: Build installer ISO
+      - name: Build QCOW2 disk image
         run: |
           VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
-          sudo mkdir -p artifacts/iso artifacts/checksums artifacts/logs
-          sudo bash build/scripts/build-iso.sh "${VARIANT}"
+          sudo mkdir -p artifacts/qcow2 artifacts/checksums artifacts/logs
+          sudo bash build/scripts/build-qcow2.sh "${VARIANT}"
 
       - name: Fix artifact ownership
         run: sudo chown -R "$(id -u):$(id -g)" artifacts/
@@ -42,12 +48,12 @@ jobs:
       - name: Verify artifacts
         run: bash build/scripts/verify.sh
 
-      - name: Upload ISO artifact
+      - name: Upload QCOW2 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: arkon-iso-${{ github.sha }}
+          name: arkon-qcow2-${{ github.sha }}
           path: |
-            artifacts/iso/*.iso
+            artifacts/qcow2/*.qcow2
             artifacts/checksums/*.sha256
           retention-days: 30
 
