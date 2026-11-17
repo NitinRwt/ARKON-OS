@@ -25,26 +25,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y podman qemu-utils
 
-      - name: Set up podman storage
-        run: |
-          mkdir -p ~/.config/containers
-          cat > ~/.config/containers/storage.conf <<'EOF'
-          [storage]
-          driver = "overlay"
-          runroot = "/run/user/1001/containers"
-          graphroot = "/home/runner/.local/share/containers/storage"
-          EOF
-
       - name: Build ARKON container image
         run: |
           VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
-          bash build/scripts/build-image.sh "${VARIANT}"
+          sudo bash build/scripts/build-image.sh "${VARIANT}"
 
       - name: Build installer ISO
         run: |
           VARIANT="${{ github.event.inputs.variant || 'arkon' }}"
-          mkdir -p artifacts/iso artifacts/checksums artifacts/logs
-          bash build/scripts/build-iso.sh "${VARIANT}"
+          sudo mkdir -p artifacts/iso artifacts/checksums artifacts/logs
+          sudo bash build/scripts/build-iso.sh "${VARIANT}"
+
+      - name: Fix artifact ownership
+        run: sudo chown -R "$(id -u):$(id -g)" artifacts/
 
       - name: Verify artifacts
         run: bash build/scripts/verify.sh
