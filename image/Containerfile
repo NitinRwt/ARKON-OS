@@ -22,14 +22,12 @@ FROM ${BASE_IMAGE} AS base
 
 ARG FEDORA_RELEASE
 
-# Copy allow-listed repository files (D-007: no unapproved repositories).
-COPY image/repos/rpmfusion-free.repo    /etc/yum.repos.d/rpmfusion-free.repo
-COPY image/repos/rpmfusion-nonfree.repo /etc/yum.repos.d/rpmfusion-nonfree.repo
-
-# Install RPM Fusion GPG keys before trusting the repositories.
-RUN rpm --import \
-    https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-${FEDORA_RELEASE} \
-    https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-${FEDORA_RELEASE}
+# Install RPM Fusion via release packages — this is the standard method and
+# installs the .repo files and GPG keys in one step (D-007: allow-listed repos).
+RUN dnf install -y \
+    "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+    "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
+    && dnf clean all
 
 # Copy and install base package list.
 COPY image/packages/base.txt /tmp/packages-base.txt
