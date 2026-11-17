@@ -61,6 +61,7 @@ echo "==> Build complete: ${IMAGE_TAG}"
 echo "    Digest: $(podman inspect --format '{{.Digest}}' "${IMAGE_TAG}")"
 
 # Record build metadata.
+mkdir -p "${REPO_ROOT}/build/metadata"
 METADATA_FILE="${REPO_ROOT}/build/metadata/build-${VARIANT}-${TIMESTAMP}.json"
 cat > "${METADATA_FILE}" <<JSON
 {
