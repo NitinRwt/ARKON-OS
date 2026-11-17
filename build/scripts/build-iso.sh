@@ -46,6 +46,8 @@ echo "    Type: anaconda-iso"
 echo "    Output: ${OUTPUT_DIR}"
 echo "    Log:    ${LOG_FILE}"
 
+REPO_FILE="${REPO_ROOT}/build/config/fedora-45.repo"
+
 podman run \
     --rm \
     --privileged \
@@ -54,6 +56,7 @@ podman run \
     -v /var/lib/containers/storage:/var/lib/containers/storage \
     -v "${OUTPUT_DIR}":/output \
     -v "${CONFIG_FILE}":/config.toml:ro \
+    -v "${REPO_FILE}":/etc/yum.repos.d/fedora-45.repo:ro \
     "${IMAGE_BUILDER}" \
     --type anaconda-iso \
     --rootfs xfs \

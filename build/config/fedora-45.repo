@@ -1,0 +1,13 @@
+[fedora-45]
+name=Fedora 45 - x86_64
+baseurl=https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Everything/x86_64/os/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=False
+
+[fedora-45-updates]
+name=Fedora 45 - x86_64 - Updates
+baseurl=https://dl.fedoraproject.org/pub/fedora/linux/updates/45/Everything/x86_64/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=False
