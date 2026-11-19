@@ -55,6 +55,14 @@ jobs:
             echo "    Compressed size: $(du -sh "$f" | cut -f1)"
           done
 
+      - name: Recalculate checksums after compression
+        run: |
+          for f in artifacts/qcow2/*.qcow2; do
+            [ -f "$f" ] || continue
+            sha256sum "$f" > "artifacts/checksums/$(basename "$f").sha256"
+            echo "    Updated checksum for $(basename "$f")"
+          done
+
       - name: Verify artifacts
         run: bash build/scripts/verify.sh
 
