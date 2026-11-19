@@ -54,5 +54,8 @@ less
 man-db
 sudo
 
+# SVG rendering (needed for Plymouth logo conversion at build time)
+librsvg2-tools
+
 # Fonts (base set; desktop stage adds more)
 google-noto-fonts-common

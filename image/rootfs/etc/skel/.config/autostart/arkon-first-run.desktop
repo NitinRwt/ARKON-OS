@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ARKON First Run Setup
+Exec=/usr/libexec/arkon-first-run.sh
+OnlyShowIn=KDE
+X-KDE-autostart-condition=arkon-first-run:General:done:false
+X-KDE-StartupNotify=false
+NoDisplay=true

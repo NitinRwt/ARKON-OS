@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Id": "arkon",
+        "Name": "ARKON",
+        "Description": "ARKON OS default wallpaper",
+        "License": "MIT",
+        "Authors": [{"Name": "ARKON OS"}]
+    },
+    "KDE": {
+        "defaultImage": "contents/images/3840x2160.svg"
+    }
+}

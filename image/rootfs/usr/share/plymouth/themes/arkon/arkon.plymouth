@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=ARKON
+Description=ARKON OS boot animation
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/arkon
+ScriptFile=/usr/share/plymouth/themes/arkon/arkon.script

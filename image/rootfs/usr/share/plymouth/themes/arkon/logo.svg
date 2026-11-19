@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#1a6fff" stop-opacity="1"/>
+      <stop offset="50%"  stop-color="#4da6ff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a6fff" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="blur-glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Glow layer -->
+  <text x="200" y="90" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
+        font-size="88" font-weight="700" letter-spacing="18"
+        text-anchor="middle" fill="url(#glow)" filter="url(#blur-glow)"
+        opacity="0.5">ARKON</text>
+  <!-- Main text -->
+  <text x="200" y="90" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
+        font-size="88" font-weight="700" letter-spacing="18"
+        text-anchor="middle" fill="url(#glow)">ARKON</text>
+</svg>

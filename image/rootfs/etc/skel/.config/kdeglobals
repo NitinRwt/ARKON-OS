@@ -1,0 +1,19 @@
+[ColorScheme]
+ColorScheme=ArkonDark
+
+[General]
+ColorScheme=ArkonDark
+Name=ArkonDark
+widgetStyle=kvantum-dark
+
+[Icons]
+Theme=Papirus-Dark
+
+[KDE]
+AnimationDurationFactor=0.5
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+contrast=4
+
+[WM]
+activeFont=SF Pro Display,13,-1,5,600,0,0,0,0,0,0,0,0,0,0,1

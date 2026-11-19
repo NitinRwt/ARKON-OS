@@ -63,6 +63,23 @@ RUN dnf install -y --skip-unavailable \
 # ARKON requires authentication.
 RUN systemctl disable getty@tty1.service || true
 
+# ── ARKON branding assets ─────────────────────────────────────────────────────
+# Copy Plymouth boot theme, SDDM login theme, KDE defaults, wallpaper.
+COPY image/rootfs/ /
+
+# Convert SVG logo to PNG for Plymouth (Plymouth script module needs raster img)
+RUN rsvg-convert -w 400 -h 120 \
+    /usr/share/plymouth/themes/arkon/logo.svg \
+    -o /usr/share/plymouth/themes/arkon/logo.png \
+    && rm /usr/share/plymouth/themes/arkon/logo.svg
+
+# Register and activate ARKON Plymouth theme
+RUN plymouth-set-default-theme arkon \
+    && dracut --regenerate-all --force 2>/dev/null || true
+
+# Fix permissions on the first-run script
+RUN chmod +x /usr/libexec/arkon-first-run.sh
+
 # ── Stage 3: gaming ───────────────────────────────────────────────────────────
 # Steam, Gamescope, MangoHud. Requires RPM Fusion nonfree for Steam.
 

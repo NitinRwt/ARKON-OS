@@ -53,10 +53,18 @@ google-noto-cjk-fonts-common
 # Accessibility
 at-spi2-core
 
-# Theming
+# Theming — base KDE
 breeze-icon-theme
 plasma-breeze
 kde-gtk-config
+
+# ARKON branding — boot animation, login screen, macOS-style desktop
+plymouth
+plymouth-scripts
+papirus-icon-theme
+kvantum
+kvantum-themes
+plasma-systemmonitor
 
 # Flatpak (user scope; no system Flatpaks in the image)
 flatpak
