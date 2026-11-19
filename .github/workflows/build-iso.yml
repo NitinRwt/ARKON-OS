@@ -45,6 +45,16 @@ jobs:
       - name: Fix artifact ownership
         run: sudo chown -R "$(id -u):$(id -g)" artifacts/
 
+      - name: Compress QCOW2 (reduce download size)
+        run: |
+          for f in artifacts/qcow2/*.qcow2; do
+            [ -f "$f" ] || continue
+            echo "==> Compressing $f"
+            qemu-img convert -c -O qcow2 "$f" "${f}.compressed"
+            mv "${f}.compressed" "$f"
+            echo "    Compressed size: $(du -sh "$f" | cut -f1)"
+          done
+
       - name: Verify artifacts
         run: bash build/scripts/verify.sh
 
@@ -56,6 +66,7 @@ jobs:
             artifacts/qcow2/*.qcow2
             artifacts/checksums/*.sha256
           retention-days: 30
+          compression-level: 0
 
       - name: Upload build log
         if: always()
