@@ -80,6 +80,14 @@ RUN plymouth-set-default-theme arkon \
 # Fix permissions on the first-run script
 RUN chmod +x /usr/libexec/arkon-first-run.sh
 
+# Symlink os-release so both paths show ARKON branding
+RUN ln -sf /etc/os-release /usr/lib/os-release
+
+# Convert logo SVG to PNG for pixmaps (apps that need raster logo)
+RUN rsvg-convert -w 320 -h 120 \
+    /usr/share/pixmaps/arkon-logo.svg \
+    -o /usr/share/pixmaps/arkon-logo.png || true
+
 # ── Stage 3: gaming ───────────────────────────────────────────────────────────
 # Steam, Gamescope, MangoHud. Requires RPM Fusion nonfree for Steam.
 

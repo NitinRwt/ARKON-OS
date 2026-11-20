@@ -1,0 +1,13 @@
+[General]
+LogoPath=/usr/share/pixmaps/arkon-logo.svg
+Name=ARKON OS
+Version=1.0 — Genesis
+Variant=Gaming & AI Edition
+Website=https://github.com/NitinRwt/ARKON-OS
+BugReportPage=https://github.com/NitinRwt/ARKON-OS/issues
+
+[Developer]
+# Shown in KDE System Settings → About This System
+Name=Nitin Rawat
+Role=Lead Developer & Founder
+Website=https://github.com/NitinRwt

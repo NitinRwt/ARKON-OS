@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#1a6fff"/>
+      <stop offset="50%"  stop-color="#4da6ff"/>
+      <stop offset="100%" stop-color="#1a6fff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="120" fill="#08091a" rx="12"/>
+  <text x="160" y="82"
+        font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif"
+        font-size="62" font-weight="700" letter-spacing="12"
+        text-anchor="middle"
+        fill="url(#g)" filter="url(#glow)">ARKON</text>
+  <rect x="60" y="94" width="200" height="2" fill="#1a6fff" opacity="0.5" rx="1"/>
+</svg>
