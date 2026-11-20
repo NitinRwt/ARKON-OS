@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Steam (ARKON)
+Comment=Launch Steam with ARKON gaming optimizations
+Exec=env STEAM_FORCE_DESKTOPUI_SCALING=1 SDL_VIDEODRIVER=wayland,x11 /usr/bin/steam %U
+Icon=steam
+Terminal=false
+Type=Application
+Categories=Game;
+MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=Steam (Big Picture Mode)
+Exec=env SDL_VIDEODRIVER=wayland,x11 /usr/bin/steam -bigpicture

@@ -102,6 +102,10 @@ RUN dnf install -y --skip-unavailable \
 # Enable GameMode daemon.
 RUN systemctl enable gamemoded.service || true
 
+# Fix permissions: Steam needs /tmp writeable and /proc accessible.
+# Also ensure the gaming profile script is executable.
+RUN chmod +x /etc/profile.d/arkon-gaming.sh
+
 # ── Target: arkon (Mesa, no NVIDIA) ───────────────────────────────────────────
 
 FROM gaming AS arkon
